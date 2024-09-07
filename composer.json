@@ -1,0 +1,17 @@
+{
+    "name": "rslb/model",
+    "description": "Model",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Rslb\\Model\\": "src/",
+            "Rslb\\Model\\Tests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Radek Stasiak"
+        }
+    ],
+    "require": {}
+}
