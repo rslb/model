@@ -2,15 +2,22 @@
 
 namespace Rslb\Model;
 
+use DateTime;
 use Exception;
 
 abstract class Model implements ModelInterface
 {
     private array $pendingEvents = [];
+    private DateTime $createdAt;
+    private DateTime $updatedAt;
+    private ?DateTime $deletedAt = null;
+
+    private bool $isDeleted = false;
 
 
     public function __construct(private readonly string $guid)
     {
+        $this->createdAt = $this->updatedAt = new DateTime();
     }
 
 
@@ -81,6 +88,35 @@ abstract class Model implements ModelInterface
         $this->pendingEvents = [];
         return $events;
     }
+
+    public function getCreatedAt(): DateTime
+    {
+        return $this->createdAt;
+    }
+
+    public function getUpdatedAt(): DateTime
+    {
+        return $this->updatedAt;
+    }
+
+
+
+    public function delete(): void
+    {
+        $this->isDeleted = true;
+        $this->deletedAt = new DateTime();
+    }
+
+    public function isDeleted(): bool
+    {
+        return $this->isDeleted;
+    }
+
+    public function getDeletedAt(): ?DateTime
+    {
+        return $this->deletedAt;
+    }
+
 
 
 }
