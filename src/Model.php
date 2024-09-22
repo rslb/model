@@ -8,6 +8,11 @@ use Exception;
 
 abstract class Model implements ModelInterface
 {
+
+    private bool $isDeleted = false;
+
+    private ?DateTime $deletedAt = null;
+
     private array $pendingEvents = [];
     private DateTime $createdAt;
     private DateTime $updatedAt;
@@ -15,12 +20,9 @@ abstract class Model implements ModelInterface
 
     public function __construct(
         private readonly string $guid,
-        DateTime $createdAt,
-        private bool $isDeleted = false,
-        private ?DateTime $deletedAt = null
     )
     {
-        $this->createdAt = $this->updatedAt = $createdAt;
+        $this->createdAt = $this->updatedAt = new DateTime();
     }
 
 
