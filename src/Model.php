@@ -151,6 +151,11 @@ abstract class Model implements ModelInterface
         return $events;
     }
 
+    public function setCreatedAt(DateTime $createdAt): void
+    {
+        $this->createdAt = $createdAt;
+    }
+
     public function getCreatedAt(): DateTime
     {
         return $this->createdAt;
