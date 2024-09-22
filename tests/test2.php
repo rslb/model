@@ -10,11 +10,12 @@ $repository = new TestFileRepository('repo.txt');
 
 $user = new TestUser('guid1');
 $user->setFirstname('Radek');
+$user->releaseEvents();
 
 $repository->save($user);
 
 $obj = $repository->reconstitute('guid1');
-//
+
 //print_r($user);
 //print_r($obj);
 //

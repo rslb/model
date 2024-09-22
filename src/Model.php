@@ -14,15 +14,23 @@ abstract class Model implements ModelInterface
     private ?DateTime $deletedAt = null;
 
     private array $pendingEvents = [];
-    private DateTime $createdAt;
     private DateTime $updatedAt;
 
 
     public function __construct(
         private readonly string $guid,
+        private ?DateTime $createdAt = null,
     )
     {
-        $this->createdAt = $this->updatedAt = new DateTime();
+
+        if ($createdAt === null) {
+            $createdAt = new DateTime();
+        }
+
+        $this->createdAt = $this->updatedAt = $createdAt;
+
+        $this->raise(new ModelCreated($this->guid, get_class($this), $createdAt));
+
     }
 
 
@@ -151,19 +159,21 @@ abstract class Model implements ModelInterface
         return $events;
     }
 
-    public function setCreatedAt(DateTime $createdAt): void
-    {
-        $this->createdAt = $createdAt;
-    }
-
     public function getCreatedAt(): DateTime
     {
         return $this->createdAt;
     }
 
-    public function setUpdatedAt(DateTime $updatedAt): void
+    public function update(?DateTime $updatedAt = null): void
     {
+        if ($updatedAt === null)
+        {
+            $updatedAt = new DateTime();
+        }
+
         $this->updatedAt = $updatedAt;
+
+        $this->raise(new ModelUpdated($this->guid, get_class($this), $updatedAt));
     }
 
     public function getUpdatedAt(): DateTime
@@ -172,7 +182,7 @@ abstract class Model implements ModelInterface
     }
 
 
-    public function delete(DateTime $deletedAt = null): void
+    public function delete(?DateTime $deletedAt = null): void
     {
         if ($deletedAt === null)
         {
@@ -181,6 +191,9 @@ abstract class Model implements ModelInterface
 
         $this->isDeleted = true;
         $this->deletedAt = $deletedAt;
+
+        $this->raise(new ModelDeleted($this->guid, get_class($this), $deletedAt));
+
     }
 
     public function isDeleted(): bool

@@ -23,9 +23,8 @@ class Deserializer implements DeserializerInterface
     {
 
 
-        $user = new TestUser($guid);
-        $user->setCreatedAt($createdAt);
-        $user->setUpdatedAt($updatedAt);
+        $user = new TestUser($guid, $createdAt);
+        $user->update($updatedAt);
 
         if ($isDeleted) {
 
@@ -33,6 +32,8 @@ class Deserializer implements DeserializerInterface
         }
 
         $user->setFirstname($data['firstname']);
+
+        $user->releaseEvents();
 
         return $user;
 
