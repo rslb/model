@@ -3,6 +3,7 @@
 namespace Rslb\Model;
 
 use DateTime;
+use DateTimeZone;
 use Exception;
 
 abstract class Model implements ModelInterface
@@ -10,19 +11,51 @@ abstract class Model implements ModelInterface
     private array $pendingEvents = [];
     private DateTime $createdAt;
     private DateTime $updatedAt;
-    private ?DateTime $deletedAt = null;
-
-    private bool $isDeleted = false;
 
 
-    public function __construct(private readonly string $guid)
+    public function __construct(
+        private readonly string $guid,
+        DateTime $createdAt,
+        private bool $isDeleted = false,
+        private ?DateTime $deletedAt = null
+    )
     {
-        $this->createdAt = $this->updatedAt = new DateTime();
+        $this->createdAt = $this->updatedAt = $createdAt;
     }
 
 
     public function toArray(): array
     {
+
+        if ($this->isDeleted()) {
+
+            $isDeleted = 'yes';
+            $deletedAt = $this->getDeletedAt()->format('U.u');
+            $deletedAtTimezone = $this->getCreatedAt()->getTimezone()->getName();
+
+        } else {
+
+            $isDeleted = 'no';
+            $deletedAt = 'undefined';
+            $deletedAtTimezone = 'undefined';
+        }
+
+        $base = [
+            'guid' => $this->getGuid(),
+
+            'is_deleted' => $isDeleted,
+
+            'deleted_at' => $deletedAt,
+            'deleted_at_timezone' => $deletedAtTimezone,
+
+
+            'created_at' => $this->getCreatedAt()->format('U.u'),
+            'created_at_timezone' => $this->getCreatedAt()->getTimezone()->getName(),
+
+            'updated_at' => $this->getUpdatedAt()->format('U.u'),
+            'updated_at_timezone' => $this->getUpdatedAt()->getTimezone()->getName(),
+        ];
+
         $className = get_class($this);  // Pobiera pełną nazwę klasy
         $lastBackslashPosition = strrpos($className, '\\');  // Znajduje ostatni backslash
 
@@ -42,12 +75,19 @@ abstract class Model implements ModelInterface
             throw new Exception("Klasa $serializerClass nie istnieje.");
         }
 
-        return $serializerClass::serialize($this);
+        return [
+
+            'base' => $base,
+            'data' => $serializerClass::serialize($this),
+
+        ];
+
 
     }
 
     public static function fromArray(array $data): ModelInterface
     {
+
         $className = static::class;  // Pobiera pełną nazwę klasy
         $lastBackslashPosition = strrpos($className, '\\');  // Znajduje ostatni backslash
 
@@ -67,11 +107,31 @@ abstract class Model implements ModelInterface
             throw new Exception("Klasa $serializerClass nie istnieje.");
         }
 
-        return $serializerClass::deserialize($data);
+
+        $guid = $data['base']['guid'];
+
+        $createdAt = DateTime::createFromFormat('U.u', $data['base']['created_at']);
+        $createdAt->setTimezone(new DateTimeZone($data['base']['created_at_timezone']));
+
+        $updatedAt = DateTime::createFromFormat('U.u', $data['base']['updated_at']);
+        $updatedAt->setTimezone(new DateTimeZone($data['base']['updated_at_timezone']));
+
+        if ($data['base']['is_deleted'] == 'yes') {
+
+            $isDeleted = true;
+            $deletedAt = DateTime::createFromFormat('U.u', $data['base']['deleted_at']);
+            $deletedAt->setTimezone(new DateTimeZone($data['base']['deleted_at_timezone']));
+        } else {
+
+            $isDeleted = false;
+            $deletedAt = null;
+        }
+
+        return $serializerClass::deserialize($guid, $createdAt, $updatedAt, $isDeleted, $deletedAt, $data['data']);
     }
 
 
-    public function getGuid():string
+    public function getGuid(): string
     {
         return $this->guid;
     }
@@ -94,17 +154,26 @@ abstract class Model implements ModelInterface
         return $this->createdAt;
     }
 
+    public function setUpdatedAt(DateTime $updatedAt): void
+    {
+        $this->updatedAt = $updatedAt;
+    }
+
     public function getUpdatedAt(): DateTime
     {
         return $this->updatedAt;
     }
 
 
-
-    public function delete(): void
+    public function delete(DateTime $deletedAt = null): void
     {
+        if ($deletedAt === null)
+        {
+            $deletedAt = new DateTime();
+        }
+
         $this->isDeleted = true;
-        $this->deletedAt = new DateTime();
+        $this->deletedAt = $deletedAt;
     }
 
     public function isDeleted(): bool
@@ -116,7 +185,6 @@ abstract class Model implements ModelInterface
     {
         return $this->deletedAt;
     }
-
 
 
 }

@@ -1,1 +1,0 @@
-{"guid":"test","firstname":"Radek"}
