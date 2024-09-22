@@ -1,14 +1,27 @@
 <?php
 
+use Rslb\Model\Tests\TestFileRepository;
 use Rslb\Model\Tests\TestUser;
 
 require_once "../vendor/autoload.php";
 
 
-$user = new TestUser('guid1', new DateTime(), true, new DateTime());
+$repository = new TestFileRepository('repo.txt');
+
+$user = new TestUser('guid1');
 $user->setFirstname('Radek');
 
-$data = $user->toArray();
+$repository->save($user);
 
-$obj = TestUser::fromArray($data);
+$obj = $repository->reconstitute('guid1');
+//
+//print_r($user);
+//print_r($obj);
+//
+//die;
 
+
+if( $user <> $obj) {
+
+    echo 'err';
+}

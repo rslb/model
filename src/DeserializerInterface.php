@@ -13,7 +13,7 @@ interface DeserializerInterface
         DateTime $createdAt,
         DateTime $updatedAt,
         bool     $isDeleted,
-        DateTime $deletedAt,
+        ?DateTime $deletedAt,
         array    $data,
 
     ): ModelInterface;

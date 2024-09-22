@@ -16,15 +16,22 @@ class Deserializer implements DeserializerInterface
         DateTime $createdAt,
         DateTime $updatedAt,
         bool $isDeleted,
-        DateTime $deletedAt,
+        ?DateTime $deletedAt,
         array $data
 
     ): ModelInterface
     {
 
 
-        $user = new TestUser($guid, $createdAt, $isDeleted, $deletedAt);
+        $user = new TestUser($guid);
+        $user->setCreatedAt($createdAt);
         $user->setUpdatedAt($updatedAt);
+
+        if ($isDeleted) {
+
+            $user->delete($deletedAt);
+        }
+
         $user->setFirstname($data['firstname']);
 
         return $user;
